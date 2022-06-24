@@ -49,14 +49,21 @@ static void getNextBlock(state_t *s);
 template<bool EL>
 void _monitorBody(uint32_t inst, state_t *s) {
   uint32_t reason = ((inst >> RSVD_INSTRUCTION_ARG_SHIFT) & RSVD_INSTRUCTION_ARG_MASK) >> 1;
+  //std::cout << "reason = " << reason << ", return address " << std::hex << s->gpr[31] << std::dec << "\n";
+  //std::cout << "monitor reason " << reason << " at icnt " << s->icnt << "\n";
   switch(reason)
     {
     case 6: {
       /* int open(char *path, int flags) */
       uint32_t uptr = *reinterpret_cast<uint32_t*>(s->gpr + R_a0);
       const char *path = (char*)(s->mem + uptr);
+      //std::cout << "open " << path << "\n";
       int flags = remapIOFlags(s->gpr[R_a1]);
-      s->gpr[R_v0] = open(path, flags, S_IRUSR|S_IWUSR);
+      int fd = open(path, flags, S_IRUSR|S_IWUSR);
+      if(fd != -1) {
+	globals::openFileDes.insert(fd);
+      }
+      s->gpr[R_v0] = fd;
       break;
     }
     case 7: {
@@ -75,8 +82,11 @@ void _monitorBody(uint32_t inst, state_t *s) {
       s->gpr[R_v0] = lseek(s->gpr[R_a0], s->gpr[R_a1], s->gpr[R_a2]);
       break;
     case 10: /* close */
-      if(s->gpr[R_a0]>2)
+      if(s->gpr[R_a0]>2) {
 	s->gpr[R_v0] = (int32_t)close(s->gpr[R_a0]);
+	if(s->gpr[R_v0] == 0)
+	  globals::openFileDes.erase(s->gpr[R_a0]);
+      }
       else
 	s->gpr[R_v0] = 0;
       break;

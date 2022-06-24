@@ -318,10 +318,14 @@ public:
 };
 
 class insn_monitor : public rTypeInsn {
+private:
+  uint32_t reason;
  public:
   insn_monitor(uint32_t inst, uint32_t addr) :
-    rTypeInsn(inst, addr) {}
+    rTypeInsn(inst, addr), reason(((inst >> RSVD_INSTRUCTION_ARG_SHIFT) &
+				   RSVD_INSTRUCTION_ARG_MASK)) {}
   bool canCompile() const override {
+    
     return false;
   }
   void recDefines(cfgBasicBlock *cBB, regionCFG *cfg) override {};
@@ -1192,7 +1196,7 @@ llvm::Value *Insn::byteSwap(llvm::Value *v) {
     std::vector<llvm::Type*> typeVec;
     typeVec.push_back(v->getType());
     llvm::ArrayRef<llvm::Type*> typeArrRef(typeVec);
-    llvm::Value *vswapIntr = llvm::Intrinsic::getDeclaration(cfg->myModule, 
+    auto vswapIntr = llvm::Intrinsic::getDeclaration(cfg->myModule, 
 							     llvm::Intrinsic::bswap, 
 							     typeArrRef);
     llvm::Value *vswapCall = cfg->myIRBuilder->CreateCall(vswapIntr, v);
@@ -1700,8 +1704,7 @@ bool insn_clz::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regTbl
   llvm::Value *vRS = regTbl.gprTbl[rs];
   typeVec.push_back(vRS->getType());
   llvm::ArrayRef<llvm::Type*> typeArrRef(typeVec);
-  llvm::Value *vclzIntr = llvm::Intrinsic::getDeclaration(cfg->myModule, 
-							  llvm::Intrinsic::ctlz, typeArrRef);
+  auto vclzIntr = llvm::Intrinsic::getDeclaration(cfg->myModule, llvm::Intrinsic::ctlz, typeArrRef);
   std::vector<lv_t*> args;
   args.push_back(vRS);
   args.push_back(vTrue);
@@ -3468,9 +3471,9 @@ bool insn_fsqrt::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regT
   typeVec.push_back(vT->getType());
   llvm::ArrayRef<llvm::Type*> typeArrRef(typeVec);
 
-  llvm::Value *vSqrt = llvm::Intrinsic::getDeclaration(cfg->myModule,
-						       llvm::Intrinsic::sqrt, 
-						       typeArrRef);
+  auto vSqrt = llvm::Intrinsic::getDeclaration(cfg->myModule,
+					       llvm::Intrinsic::sqrt, 
+					       typeArrRef);
   vT  = cfg->myIRBuilder->CreateCall(vSqrt, regTbl.getFPR(fs, TC));
   regTbl.setFPR(fd, vT);
   return false;

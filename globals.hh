@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <string>
+#include <set>
 class region;
 class basicBlock;
 class execUnit;
@@ -36,6 +37,9 @@ namespace globals {
   extern uint64_t icountMIPS;
   extern cfgAugEnum cfgAug;
   extern std::string binaryName;
+  extern std::set<int> openFileDes;
+  extern bool profile;
+  extern uint64_t dumpicnt;
 #ifndef ELIDE_LLVM
   extern llvm::CodeGenOpt::Level regionOptLevel;
 #endif

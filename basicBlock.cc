@@ -162,6 +162,11 @@ void basicBlock::addIns(uint32_t inst, uint32_t addr) {
 #endif
     insMap[addr] = this;
     insInBBCnt[addr]++;
+    
+    //if(insInBBCnt[addr] > 1) {
+    //std::cerr << *this;
+    // exit(-1);
+    //}
   }
 }
 
@@ -340,7 +345,7 @@ std::ostream &operator<<(std::ostream &out, const basicBlock &bb) {
 
 
 basicBlock* basicBlock::run(state_t *s) {
-  inscnt++;
+  inscnt += getNumIns();
   globals::currUnit = this;
   ssize_t length = (termAddr-entryAddr)/4;
   if(globals::simPoints) {
@@ -525,7 +530,11 @@ void basicBlock::report(std::string &s, uint64_t icnt) {
 	  (int)hasMonitor, (int)hasFP, getEntryAddr(), (size_t)inscnt, frac);
   s += std::string(buf);
   debugSymDB::lookup(getEntryAddr(),s);
-  sprintf(buf,"\n\n");
+  sprintf(buf,"\n");
+  std::stringstream ss;
+  ss << *this;
+  s += ss.str();
+  s += "\n\n";
   s += std::string(buf);
 }
 

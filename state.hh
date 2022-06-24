@@ -21,8 +21,6 @@ struct state_t {
   uint64_t abortloc;
   uint8_t brk;
   uint32_t oldpc;
-  uint8_t mode;
-  uint64_t nextDropIcnt;
 };
 
 std::ostream &operator<<(std::ostream &out, const state_t & s);

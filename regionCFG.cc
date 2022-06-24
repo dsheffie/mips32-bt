@@ -11,6 +11,7 @@
 #include "disassemble.hh"
 #include "debugSymbols.hh"
 #include "globals.hh"
+#include "saveState.hh"
 
 static regionCFG *currCFG = nullptr;
 
@@ -1542,6 +1543,7 @@ basicBlock* regionCFG::run(state_t *ss) {
   globals::currUnit = this;
   uint64_t nextbb = 0;
   uint64_t i0=ss->icnt;
+
   codeBits(
 	   &(ss->pc), 
 	   ss->gpr,
@@ -1565,6 +1567,12 @@ basicBlock* regionCFG::run(state_t *ss) {
   inscnt+=i0;
   icnt +=i0;
   iters++;
+
+  if(ss->icnt >= globals::dumpicnt) {
+    dumpState(*ss, globals::blobName);
+    ss->brk = 1;
+    exit(-1);
+  }
   
   if(nextbb==0) {
     //return globals::cBB->findBlock(ss->pc);

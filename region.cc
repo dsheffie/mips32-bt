@@ -2,13 +2,17 @@
 #include "region.hh"
 #include "basicBlock.hh"
 #include "helper.hh"
+#define ELIDE_LLVM 1
+#include "globals.hh"
 
 void region::updateRegionHeads(basicBlock *bb, basicBlock *lbb) {
   assert(bb);
   assert(lbb);
+  if(globals::profile)
+    return;
   uint32_t bb_ea = bb->getEntryAddr();
   uint32_t lbb_ea = lbb->getEntryAddr();
-
+  
   /* forward branch...*/
   if(bb_ea > lbb_ea /*|| bb->hasRegion*/ || enHistCollection)
     return;
@@ -54,6 +58,9 @@ void region::getRegion(std::vector<basicBlock*> &region) {
 }
 
 bool region::update(basicBlock *bb) {
+  if(globals::profile)
+    return false;
+    
   if(enHistCollection) {
     if((bb == currRegionHead) && (histBufPos != 0)) {
       enHistCollection = false;

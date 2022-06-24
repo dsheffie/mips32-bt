@@ -56,6 +56,9 @@ namespace globals {
   uint64_t icountMIPS = 500;
   cfgAugEnum cfgAug = cfgAugEnum::none;
   std::string binaryName;
+  std::set<int> openFileDes;
+  bool profile = false;
+  uint64_t dumpicnt = ~(0UL);
 }
 
 perfmap* perfmap::theInstance = nullptr;
@@ -152,15 +155,17 @@ int main(int argc, char *argv[]) {
    ("args,a", po::value<std::string>(&sysArgs), "arguments to mips binary")
    ("both,b", po::value<bool>(&globals::enableBoth)->default_value(true), "use regionCFG when fp regs are in state both")
    ("clock,c", po::value<bool>(&globals::enClockFuncts)->default_value(false), "enable wall-clock")
-   ("cfg,d", po::value<bool>(&globals::enableCFG)->default_value(true), "enable cfg-level opt")
+   ("cfg", po::value<bool>(&globals::enableCFG)->default_value(true), "enable cfg-level opt")
+   ("dumpicnt", po::value<uint64_t>(&globals::dumpicnt), "dump after n instructions")    
    ("enoughRegions,e", po::value<uint32_t>(&globals::enoughRegions)->default_value(5), "how many times does each region need to get executed")    
    ("file,f", po::value<std::string>(&filename), "mips binary")
    ("hash,h", po::value<bool>(&hash)->default_value(false), "hash memory at end of execution")
    ("ipo,i", po::value<bool>(&globals::ipo)->default_value(true), "allow jr,jal,jalr in regions")
    ("lines,l", po::value<size_t>(&cl)->default_value(8), "region-cache lines")
    ("opt,o", po::value<uint32_t>(&optidx)->default_value(3), "how much llvm code optimization")
-   ("replay,p", po::value<bool>(&replay)->default_value(false), "replay binary")
+   ("replay", po::value<bool>(&replay)->default_value(false), "replay binary")
    ("report,r", po::value<bool>(&report)->default_value(false), "report stats at end of execution")
+   ("profile,p", po::value<bool>(&globals::profile)->default_value(false), "report execution profile")
    ("hotThresh,t", po::value<size_t>(&hotThresh)->default_value(500), "hot bb threshold")    
    ("verbose,v", po::value<bool>(&globals::verbose)->default_value(false), "print debug information")
    ("fp_exception", po::value<bool>(&fp_exception)->default_value(false), "fp exception")
@@ -344,6 +349,26 @@ int main(int argc, char *argv[]) {
       freport << reportStr;
       freport.close();
     }
+  }
+
+  if(globals::profile) {
+    debugSymDB::init(filename.c_str());
+    std::vector<execUnit*> eUnitVec;
+    for(auto p : basicBlock::bbMap) {
+      eUnitVec.push_back(p.second);
+    }
+    std::sort(eUnitVec.begin(), eUnitVec.end(), execUnit::execUnitSorter());
+    std::string reportStr;
+    for(size_t i = 0; i < eUnitVec.size(); i++) {
+      eUnitVec[i]->report(reportStr, s->icnt);
+      
+    }
+    std::string reportName = std::string("./") + filename + std::string("-profile.txt");
+    std::fstream freport(reportName, std::fstream::out);
+    if(freport.is_open()) {
+      freport << reportStr;
+      freport.close();
+    }    
   }
 
   basicBlock::dropAllBBs();
