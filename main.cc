@@ -245,6 +245,7 @@ int main(int argc, char *argv[]) {
   std::map<uint32_t, std::pair<std::string, uint32_t>> syms;
   if(isdump) {
     loadState(*s, filename);
+    s->icnt = 0;
   }
   else {
     if(not(load_elf(filename.c_str(), entry_p, syms, s->mem))){
