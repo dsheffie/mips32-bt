@@ -23,6 +23,7 @@
 #include "debugSymbols.hh"
 #include "globals.hh"
 #include "simPoints.hh"
+#include "saveState.hh"
 
 extern const char* githash;
 int sArgc = -1;
@@ -145,7 +146,7 @@ int main(int argc, char *argv[]) {
 
   uint32_t optidx = 3, augidx = 1;
   double estart=0,estop=0;
-  bool report=false, hash=false, fp_exception=false, replay = false;
+  bool report=false, hash=false, fp_exception=false, replay = false, isdump = false;
   uint64_t max_icnt = 0;
   std::string sysArgs, filename, simPointsFname;
   po::options_description desc("Options");
@@ -155,6 +156,7 @@ int main(int argc, char *argv[]) {
    ("args,a", po::value<std::string>(&sysArgs), "arguments to mips binary")
    ("both,b", po::value<bool>(&globals::enableBoth)->default_value(true), "use regionCFG when fp regs are in state both")
    ("clock,c", po::value<bool>(&globals::enClockFuncts)->default_value(false), "enable wall-clock")
+   ("isdump,d", po::value<bool>(&isdump)->default_value(false), "is a dump")
    ("cfg", po::value<bool>(&globals::enableCFG)->default_value(true), "enable cfg-level opt")
    ("dumpicnt", po::value<uint64_t>(&globals::dumpicnt), "dump after n instructions")    
    ("enoughRegions,e", po::value<uint32_t>(&globals::enoughRegions)->default_value(5), "how many times does each region need to get executed")    
@@ -241,8 +243,13 @@ int main(int argc, char *argv[]) {
   s->mem = mem;
   
   std::map<uint32_t, std::pair<std::string, uint32_t>> syms;
-  if(not(load_elf(filename.c_str(), entry_p, syms, s->mem))){
-    return -1;
+  if(isdump) {
+    loadState(*s, filename);
+  }
+  else {
+    if(not(load_elf(filename.c_str(), entry_p, syms, s->mem))){
+      return -1;
+    }
   }
   globals::regionFinder = new region(cl, hotThresh);
   globals::cBB = new basicBlock(entry_p);
