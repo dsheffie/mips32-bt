@@ -324,8 +324,7 @@ std::ostream &operator<<(std::ostream &out, const basicBlock &bb) {
     string asmString = getAsmString(inst, addr);
     out << hex << addr << dec << " : " << asmString << endl;
     if(addr == 0) {
-      cerr << "instruction has address 0, how?\n";
-      exit(-1);
+      cerr << "warning: instruction has address 0, how?\n";
     }
   }
   out << "successors:\n";

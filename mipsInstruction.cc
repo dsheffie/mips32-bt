@@ -1221,7 +1221,7 @@ void Insn::saveInstAddress() {
   llvm::Type *iType64 = llvm::Type::getInt64Ty(cxt);
   llvm::Value *vZ = llvm::ConstantInt::get(iType64,0);
   llvm::Value *vAddr = llvm::ConstantInt::get(iType64,(uint64_t)addr);
-  llvm::Value *vG = cfg->myIRBuilder->CreateGEP(cfg->blockArgMap["icnt"], vZ);
+  llvm::Value *vG = cfg->myIRBuilder->MakeGEP(cfg->blockArgMap["icnt"], vZ);
   cfg->myIRBuilder->CreateStore(vAddr, vG);
 }
 
@@ -1564,10 +1564,10 @@ bool insn_lwc1::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regTb
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*Context));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt32PtrTy(*Context));  
   std::string loadName = "lwc1_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vSwap = byteSwap(vLoad);
   llvm::Value *vY = cfg->myIRBuilder->CreateBitCast(vSwap, llvm::Type::getFloatTy(*Context));
   regTbl.setFPR(ft,vY);
@@ -1581,10 +1581,10 @@ bool insn_ldc1::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regTb
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*Context));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt64PtrTy(*Context));  
   std::string loadName = "lwc1_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vSwap = byteSwap(vLoad);
   llvm::Value *vY = cfg->myIRBuilder->CreateBitCast(vSwap, llvm::Type::getDoubleTy(*Context));
   regTbl.setFPR(ft,vY);
@@ -1626,8 +1626,7 @@ bool insn_swc1::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regTb
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*Context));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  std::string storeName = "swc1_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA, storeName);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt32PtrTy(*Context));  
   llvm::Value *vCast = cfg->myIRBuilder->CreateBitCast(vFT, llvm::Type::getInt32Ty(*Context));
   llvm::Value *vSwap = byteSwap(vCast);
@@ -1644,8 +1643,7 @@ bool insn_sdc1::generateIR(cfgBasicBlock *cBB, Insn* nInst, llvmRegTables& regTb
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*Context));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  std::string storeName = "sdc1_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA, storeName);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt64PtrTy(*Context));  
   llvm::Value *vCast = cfg->myIRBuilder->CreateBitCast(vFT, llvm::Type::getInt64Ty(*Context));
   llvm::Value *vSwap = byteSwap(vCast);
@@ -2491,9 +2489,9 @@ bool insn_swl::generateIR(cfgBasicBlock *cBB, Insn *nInst, llvmRegTables& regTbl
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, iType64);
   
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, iPtrType32);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr, "");
   llvm::Value *vR = byteSwap(vLoad);
 
  llvm::Value *vX = regTbl.gprTbl[rt];
@@ -2539,9 +2537,9 @@ bool insn_swr::generateIR(cfgBasicBlock *cBB, Insn *nInst, llvmRegTables& regTbl
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, iType64);
   
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, iPtrType32);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,"");
   llvm::Value *vR = byteSwap(vLoad);
 
  llvm::Value *vX = regTbl.gprTbl[rt];
@@ -2577,7 +2575,7 @@ bool insn_sb::generateIR(cfgBasicBlock *cBB, Insn *nInst, llvmRegTables& regTbl)
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*(cfg->Context)));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP,llvm::Type::getInt8PtrTy(*(cfg->Context)));
   llvm::Value *vTrunc = cfg->myIRBuilder->CreateTrunc(vRT, llvm::Type::getInt8Ty(*(cfg->Context)));
   cfg->myIRBuilder->CreateStore(vTrunc, vPtr);
@@ -2592,7 +2590,7 @@ bool insn_sh::generateIR(cfgBasicBlock *cBB, Insn *nInst, llvmRegTables& regTbl)
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(cxt));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt16PtrTy(cxt));
   llvm::Value *vTrunc = cfg->myIRBuilder->CreateTrunc(vRT, llvm::Type::getInt16Ty(cxt));
   llvm::Value *vSwap = byteSwap(vTrunc);
@@ -2610,7 +2608,7 @@ bool insn_sw::generateIR(cfgBasicBlock *cBB, Insn *nInst, llvmRegTables& regTbl)
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(cxt));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt32PtrTy(cxt));
   llvm::Value *vSwap = byteSwap(vRT);
   cfg->myIRBuilder->CreateStore(vSwap, vPtr);
@@ -2624,9 +2622,9 @@ bool insn_lbu::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl)
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA =  cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*(cfg->Context)));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   std::string loadName = "lbu_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vGEP,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vGEP,loadName);
   llvm::Value *vSext = cfg->myIRBuilder->CreateZExt(vLoad, llvm::Type::getInt32Ty(*(cfg->Context)));
   regTbl.gprTbl[rt] = vSext;
   return false;
@@ -2641,9 +2639,9 @@ bool insn_lb::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl) 
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, iType64);
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   std::string loadName = "lb_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vGEP,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vGEP,loadName);
   regTbl.gprTbl[rt] = cfg->myIRBuilder->CreateSExt(vLoad,iType32);
   return false;
 }
@@ -2654,10 +2652,10 @@ bool insn_lh::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl) 
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA =  cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*(cfg->Context)));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt16PtrTy(*(cfg->Context)));
   std::string loadName = "lh_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vSwap = byteSwap(vLoad);
   llvm::Value *vSext = cfg->myIRBuilder->CreateSExt(vSwap,  
 						    llvm::Type::getInt32Ty(*(cfg->Context)));
@@ -2674,10 +2672,10 @@ bool insn_lhu::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl)
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA =  cfg->myIRBuilder->CreateZExt(vEA, iType64);
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt16PtrTy(cxt));
   std::string loadName = "lhu_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vSext = cfg->myIRBuilder->CreateZExt(byteSwap(vLoad), iType32);
   regTbl.gprTbl[rt] = vSext;
   return false;
@@ -2689,10 +2687,10 @@ bool insn_lw::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl) 
   llvm::Value *vEA = cfg->myIRBuilder->CreateAdd(vRS, vIMM);
   llvm::Value *vZEA =  cfg->myIRBuilder->CreateZExt(vEA, llvm::Type::getInt64Ty(*(cfg->Context)));
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, llvm::Type::getInt32PtrTy(*(cfg->Context)));
   std::string loadName = "lw_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   regTbl.gprTbl[rt] = byteSwap(vLoad);
   return false;
 }
@@ -2727,10 +2725,10 @@ bool insn_lwl::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl)
   vEA = cfg->myIRBuilder->CreateAnd(vEA, vMask0);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, iType64);
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, iPtrType32);
   std::string loadName = "lwl_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vR = byteSwap(vLoad);
 
   if(globals::isMipsEL) {
@@ -2778,10 +2776,10 @@ bool insn_lwr::generateIR(cfgBasicBlock *cBB, Insn *nInst,llvmRegTables& regTbl)
   vEA = cfg->myIRBuilder->CreateAnd(vEA, vMask0);
   llvm::Value *vZEA = cfg->myIRBuilder->CreateZExt(vEA, iType64);
   llvm::Value *vMem = cfg->blockArgMap["mem"];
-  llvm::Value *vGEP = cfg->myIRBuilder->CreateGEP(vMem, vZEA);
+  llvm::Value *vGEP = cfg->myIRBuilder->MakeGEP(vMem, vZEA);
   llvm::Value *vPtr = cfg->myIRBuilder->CreateBitCast(vGEP, iPtrType32);
   std::string loadName = "lwl_" + std::to_string(cfg->getuuid()++) + "_" + toStringHex(addr);
-  llvm::Value *vLoad = cfg->myIRBuilder->CreateLoad(vPtr,loadName);
+  llvm::Value *vLoad = cfg->myIRBuilder->MakeLoad(vPtr,loadName);
   llvm::Value *vR = byteSwap(vLoad);
 
   llvm::Value *vX = regTbl.gprTbl[rt];
